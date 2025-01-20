@@ -2,8 +2,23 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Heart, MessageCircle, Share2 } from "lucide-react";
+import { 
+  Heart, 
+  MessageCircle, 
+  Share2, 
+  Facebook, 
+  Instagram, 
+  Twitter, 
+  Link as LinkIcon 
+} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 interface Comment {
   id: number;
@@ -15,13 +30,14 @@ interface Comment {
 interface PostProps {
   id: number;
   content: string;
+  image?: string | null;
   author: string;
   timestamp: string;
   likes: number;
   comments: Comment[];
 }
 
-export function Post({ id, content, author, timestamp, likes: initialLikes, comments: initialComments }: PostProps) {
+export function Post({ id, content, image, author, timestamp, likes: initialLikes, comments: initialComments }: PostProps) {
   const [likes, setLikes] = useState(initialLikes);
   const [comments, setComments] = useState(initialComments);
   const [showComments, setShowComments] = useState(false);
@@ -47,6 +63,37 @@ export function Post({ id, content, author, timestamp, likes: initialLikes, comm
     setNewComment("");
   };
 
+  const handleShare = (platform: string) => {
+    const url = window.location.href;
+    let shareUrl = '';
+
+    switch (platform) {
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+        break;
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(content)}`;
+        break;
+      case 'instagram':
+        toast({
+          title: "Info",
+          description: "Direct Instagram sharing is not available. Please copy the link and share manually.",
+        });
+        return;
+      case 'copy':
+        navigator.clipboard.writeText(url);
+        toast({
+          title: "Success",
+          description: "Link copied to clipboard!",
+        });
+        return;
+    }
+
+    if (shareUrl) {
+      window.open(shareUrl, '_blank', 'width=600,height=400');
+    }
+  };
+
   return (
     <Card className="mb-6 post-card">
       <div className="p-6">
@@ -60,6 +107,16 @@ export function Post({ id, content, author, timestamp, likes: initialLikes, comm
         </div>
 
         <p className="text-gray-700 mb-4">{content}</p>
+
+        {image && (
+          <div className="mb-4">
+            <img 
+              src={image} 
+              alt="Post content" 
+              className="rounded-lg max-h-96 w-full object-cover"
+            />
+          </div>
+        )}
 
         <div className="flex items-center gap-6 border-t pt-4">
           <Button
@@ -82,10 +139,32 @@ export function Post({ id, content, author, timestamp, likes: initialLikes, comm
             {comments.length}
           </Button>
 
-          <Button variant="ghost" size="sm" className="gap-2">
-            <Share2 className="w-5 h-5" />
-            Share
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-2">
+                <Share2 className="w-5 h-5" />
+                Share
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => handleShare('facebook')}>
+                <Facebook className="w-4 h-4 mr-2" />
+                Facebook
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleShare('twitter')}>
+                <Twitter className="w-4 h-4 mr-2" />
+                Twitter
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleShare('instagram')}>
+                <Instagram className="w-4 h-4 mr-2" />
+                Instagram
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleShare('copy')}>
+                <LinkIcon className="w-4 h-4 mr-2" />
+                Copy Link
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {showComments && (
