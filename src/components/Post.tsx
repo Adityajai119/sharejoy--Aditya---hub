@@ -18,7 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 interface Comment {
   id: number;
@@ -76,15 +76,13 @@ export function Post({ id, content, image, author, timestamp, likes: initialLike
         break;
       case 'instagram':
         toast({
-          title: "Info",
-          description: "Direct Instagram sharing is not available. Please copy the link and share manually.",
+          description: "Direct Instagram sharing is not available. Please copy the link and share manually."
         });
         return;
       case 'copy':
         navigator.clipboard.writeText(url);
         toast({
-          title: "Success",
-          description: "Link copied to clipboard!",
+          description: "Link copied to clipboard!"
         });
         return;
     }
